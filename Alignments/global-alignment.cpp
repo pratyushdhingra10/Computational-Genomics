@@ -3,6 +3,7 @@
 #include <string>
 #include <fstream>
 #include <limits>
+#include <algorithm>
 
 using namespace std;
 
@@ -111,10 +112,10 @@ class GlobalAlignment{
             double score = getMaxValue(prev_Dscore,prev_Iscore,prev_Sscore);
 
             if(sequence_1.at(index_i -1) == sequence_2.at(index_j-1)){
-                return score + match_score;
+                return score + this->match_score;
             }
 
-            return score + mismatch_score;
+            return score + this->mismatch_score;
         }
 
         /* Function to find the previous best type if the current best type is S. Used for retracing. */
@@ -137,7 +138,7 @@ class GlobalAlignment{
             double prev_Dscore = table[index_i - 1][index_j].Dscore;
             double prev_Iscore = table[index_i - 1][index_j].Iscore;
 
-            double score = getMaxValue(prev_Dscore + gap_score,prev_Iscore + affinity_score + gap_score,prev_Sscore + affinity_score + gap_score);
+            double score = getMaxValue(prev_Dscore + this->gap_score,prev_Iscore + this->affinity_score + this->gap_score,prev_Sscore + this->affinity_score + this->gap_score);
 
             return score;
         }
@@ -149,7 +150,7 @@ class GlobalAlignment{
             double prev_Iscore = table[index_i - 1][index_j].Iscore;
 
             vector<char> types{'d','i','s'};
-            vector<double> values{prev_Dscore + gap_score, prev_Iscore + affinity_score + gap_score, prev_Sscore + affinity_score + gap_score};
+            vector<double> values{prev_Dscore + this->gap_score, prev_Iscore + this->affinity_score + this->gap_score, prev_Sscore + this->affinity_score + this->gap_score};
 
 
             char type = getMaxValueType(values, types);
@@ -164,7 +165,7 @@ class GlobalAlignment{
             double prev_Iscore = table[index_i][index_j - 1].Iscore;
 
 
-            double score = getMaxValue(prev_Iscore + gap_score, prev_Dscore + affinity_score + gap_score, prev_Sscore + affinity_score + gap_score);
+            double score = getMaxValue(prev_Iscore + this->gap_score, prev_Dscore + this->affinity_score + this->gap_score, prev_Sscore + this->affinity_score + this->gap_score);
 
             return score;
         }
@@ -176,7 +177,7 @@ class GlobalAlignment{
             double prev_Iscore = table[index_i][index_j - 1].Iscore;
 
             vector<char> types{'d','i','s'};
-            vector<double> values{prev_Dscore + affinity_score + gap_score,prev_Iscore + gap_score ,prev_Sscore + affinity_score + gap_score};
+            vector<double> values{prev_Dscore + this->affinity_score + this->gap_score,prev_Iscore + this->gap_score ,prev_Sscore + this->affinity_score + this->gap_score};
             
             char type = getMaxValueType(values,types);
 
@@ -248,7 +249,7 @@ class GlobalAlignment{
             this->match_score = match_score;
             this->mismatch_score = mismatch_score;
             this->gap_score = gap_score;
-
+            this->affinity_score = affinity_score;
             vector<vector<DP_cell>> table(sequence_1.length() +1, vector<DP_cell>(sequence_2.length() +1));
 
             this->table = table;
@@ -266,12 +267,12 @@ class GlobalAlignment{
             for (int index_i = 1 ; index_i <= this->sequence_1.length() ;  index_i++ ){
                 this->table[index_i][0].Sscore = infinity * -1;
                 this->table[index_i][0].Iscore = infinity * -1;
-                this->table[index_i][0].Dscore =  affinity_score + index_i * gap_score;
+                this->table[index_i][0].Dscore =  this->affinity_score + index_i * this->gap_score;
             }
 
             for (int index_j = 1 ; index_j <= this->sequence_2.length() ;  index_j++ ){
                 this->table[0][index_j].Sscore = infinity * -1;
-                this->table[0][index_j].Iscore = affinity_score + index_j * gap_score;
+                this->table[0][index_j].Iscore = this->affinity_score + index_j * this->gap_score;
                 this->table[0][index_j].Dscore =  infinity * -1;
             }
 
@@ -282,7 +283,7 @@ class GlobalAlignment{
                     this->table[index_1][index_2].Iscore = getIscore(table, index_1,index_2);
                 }
             }
-
+            cout << this->affinity_score << "\n";
             return table;
         }
 
@@ -335,7 +336,7 @@ int main()
     string sequence_1 = sequences[0];
     string sequence_2 = sequences[1];
 
-    GlobalAlignment alignment_g(sequence_1,sequence_2, 1 , -1, -2,-5);
+    GlobalAlignment alignment_g(sequence_1,sequence_2, 1 , -2, -1,-5);
 
     vector<vector<DP_cell>> alignment_table = alignment_g.fillAndGetTable();
 
